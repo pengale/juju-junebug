@@ -56,6 +56,7 @@ def fetch_bugs(project, bug_age=bug_age, **search_params):
     num = len(bugs)
 
     for bug in bugs:
+        print(bug)
         days = bug_age(bug)
         total_days += days
 
@@ -68,8 +69,7 @@ def fetch_bugs(project, bug_age=bug_age, **search_params):
 
     avg_days = int(total_days / num) if num > 0 else "-"
 
-    return (f'{NOW.year}/{NOW.month}/{NOW.day}, {num}, {avg_days}, {longest[0]}, {longest[1]}, '
-            f'{shortest[0]}, {shortest[1]}')
+    return [num, avg_days, longest[0], longest[1], shortest[0], shortest[1]]
 
 
 def field_report(launchpad, project):
@@ -79,11 +79,15 @@ def field_report(launchpad, project):
     TODO: only report bugs currently open, or closed this year.
 
     '''
-    with open(FIELD_BUGS, 'a') as file_:
-        for team_name in ['field-critical', 'field-high', 'field-medium']:
-            team = launchpad.people(team_name)
-            bugs = fetch_bugs(project, bug_subscriber=team.self_link)
-            file_.write(f'\n{team_name}, {bugs}')
+    data = []
+    date =  f'{NOW.year}/{NOW.month}/{NOW.day}'
+
+    for team_name in ['field-critical', 'field-high', 'field-medium']:
+        team = launchpad.people(team_name)
+        bugs = ','.join(str(f) for f in fetch_bugs(project, bug_subscriber=team.self_link))
+        data.append(f'{date},{team_name},{bugs}')
+
+    return FIELD_BUGS, data
 
 
 def new_report(launchpad, project):
@@ -91,9 +95,9 @@ def new_report(launchpad, project):
     Collect stats on all new bugs.
 
     '''
-    with open(NEW_BUGS, 'a') as file_:
-        bugs = fetch_bugs(project, status=['New'])
-        file_.write(f'\n{bugs}')
+    date =  f'{NOW.year}/{NOW.month}/{NOW.day}'
+    bugs = ','.join(str(f) for f in fetch_bugs(project, status=['New']))
+    return NEW_BUGS, [f'{date},{bugs}']
 
 
 def test_report(launchpad, project):
@@ -110,6 +114,16 @@ def test_report(launchpad, project):
     assert bug.date_in_progress is None
 
 
+def print_report(filename, data):
+    '''
+    Output a report
+
+    '''
+    with open(filename, 'a') as file_:
+        for line in data:
+            file_.write(f'\n{line}')
+
+
 def main():
     '''
     Entry point.
@@ -120,10 +134,10 @@ def main():
     project = launchpad.projects('juju')
 
     if '--field' in sys.argv or '-f' in sys.argv:
-        field_report(launchpad, project)
+        print_report(*field_report(launchpad, project))
 
     if '--new' in sys.argv or '-f' in sys.argv:
-        new_report(launchpad, project)
+        print_report(*new_report(launchpad, project))
 
     if '--test' in sys.argv:
         test_report(launchpad, project)
