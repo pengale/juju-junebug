@@ -36,6 +36,22 @@ def bug_age(bug):
     return delta.days
 
 
+def bug_age_new(bug):
+    '''
+    Determine the age of a bug in new status.
+
+    '''
+    last_activity = bug.bug.activity.entries[-1]["datechanged"]
+
+    end = NOW
+    start = datetime.fromisoformat(last_activity)
+
+    delta = end - start
+
+    return delta.days
+
+
+
 def fetch_bugs(project, bug_age=bug_age, **search_params):
     '''
     Go and get a list of bugs. Interface documented at
@@ -96,7 +112,8 @@ def new_report(launchpad, project):
 
     '''
     date =  f'{NOW.year}/{NOW.month}/{NOW.day}'
-    bugs = ','.join(str(f) for f in fetch_bugs(project, status=['New']))
+    bugs = ','.join(str(f) for f in fetch_bugs(
+        project, bug_age=bug_age_new, status=['New']))
     return NEW_BUGS, [f'{date},{bugs}']
 
 
