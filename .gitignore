@@ -1,4 +1,11 @@
+# Junebug
+*.csv
+
+# Emacs
 \#*
 .\#*
 *~
 __pycache__
+
+# Python
+venv

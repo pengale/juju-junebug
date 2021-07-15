@@ -18,7 +18,7 @@ from launchpadlib.launchpad import Launchpad
 HOME = os.path.expanduser("~")
 NOW = datetime.now(timezone.utc)  # Timezone aware datetime object
 CACHEDIR = f"{HOME}/.launchpadlib/cache/"
-OUTPUT_DIR = f"{HOME}/Areas/Juju/"
+OUTPUT_DIR = f"."
 NEW_BUGS = f"{OUTPUT_DIR}/bugs-new.csv"
 FIELD_BUGS = f"{OUTPUT_DIR}/bugs-field.csv"
 
